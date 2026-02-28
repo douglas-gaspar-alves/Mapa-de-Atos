@@ -7,6 +7,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { APIProvider, Map, AdvancedMarker, Pin, useMap } from '@vis.gl/react-google-maps';
 import { locations, LocationGroup } from './data/events';
 import { MapPin, BookOpen, Map as MapIcon, X, Calendar, Book, Menu, ChevronRight } from 'lucide-react';
+import { GeminiImage } from './components/GeminiImage';
 
 function MapController({ selectedLocation }: { selectedLocation: LocationGroup | null }) {
   const map = useMap();
@@ -23,6 +24,7 @@ function MapController({ selectedLocation }: { selectedLocation: LocationGroup |
 
 export default function App() {
   const [selectedLocation, setSelectedLocation] = useState<LocationGroup | null>(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [apiKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '');
 
@@ -35,6 +37,7 @@ export default function App() {
 
   const handleEventSelect = (location: LocationGroup, eventId: number) => {
     setSelectedLocation(location);
+    setIsPanelOpen(true);
     setIsMenuOpen(false);
     
     setTimeout(() => {
@@ -119,22 +122,21 @@ export default function App() {
         {/* Side Panel (Left Side) */}
         <aside 
           className={`absolute md:relative top-0 left-0 h-full w-full md:w-96 lg:w-[450px] bg-white border-r border-stone-200 flex flex-col shadow-2xl z-20 transition-transform duration-300 ease-in-out ${
-            selectedLocation ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+            selectedLocation && isPanelOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           }`}
         >
           {selectedLocation ? (
             <div className="flex flex-col h-full">
               {/* Panel Header with Ancient Location Image */}
-              <div className="relative h-48 shrink-0">
-                <img 
-                  src={selectedLocation.ancientLocationImageUrl} 
+              <div className="relative h-48 shrink-0 bg-stone-900">
+                <GeminiImage 
+                  prompt={`A realistic, cinematic, historical biblical illustration of the ancient city/location of ${selectedLocation.name} during the 1st century. Ancient middle eastern setting, high quality, dramatic lighting, wide landscape.`}
                   alt={`Local antigo de ${selectedLocation.name}`}
                   className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                 <button 
-                  onClick={() => setSelectedLocation(null)}
+                  onClick={() => setIsPanelOpen(false)}
                   className="absolute top-4 right-4 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-sm transition-colors md:hidden"
                 >
                   <X className="w-5 h-5" />
@@ -152,12 +154,11 @@ export default function App() {
               <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-stone-50 scroll-smooth">
                 {selectedLocation.events.map((event) => (
                   <div key={event.id} id={`event-${event.id}`} className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden scroll-mt-6">
-                    <div className="relative h-40">
-                      <img 
-                        src={event.imageUrl} 
+                    <div className="relative h-40 bg-stone-900">
+                      <GeminiImage 
+                        prompt={`A realistic, cinematic, historical biblical illustration of: ${event.evento}. Context: ${event.description}. Ancient 1st century setting, high quality, dramatic lighting.`}
                         alt={event.evento}
                         className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
                       />
                       <div className="absolute top-3 left-3 bg-indigo-600 text-white text-xs font-bold px-2.5 py-1 rounded shadow-md flex items-center gap-1">
                         <span>Evento</span>
@@ -217,7 +218,10 @@ export default function App() {
                 <AdvancedMarker
                   key={loc.id}
                   position={{ lat: loc.lat, lng: loc.lng }}
-                  onClick={() => setSelectedLocation(loc)}
+                  onClick={() => {
+                    setSelectedLocation(loc);
+                    setIsPanelOpen(true);
+                  }}
                 >
                   <Pin 
                     background={selectedLocation?.id === loc.id ? '#ef4444' : '#4f46e5'} 
