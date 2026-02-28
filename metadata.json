@@ -1,0 +1,5 @@
+{
+  "name": "Atos Map",
+  "description": "Mapa interativo dos eventos do Livro de Atos usando o Google Maps.",
+  "requestFramePermissions": []
+}
